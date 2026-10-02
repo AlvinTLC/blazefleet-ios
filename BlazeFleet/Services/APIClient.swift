@@ -11,8 +11,12 @@ public enum APIError: LocalizedError {
         switch self {
         case .invalidURL: return "URL del servidor inválida"
         case .unauthorized: return "Sesión expirada o credenciales incorrectas"
-        case .serverError(let code, let msg): return "Error del servidor (\(code)): \(msg)"
-        case .decodingError(let err): return "Error decodificando respuesta: \(err.localizedDescription)"
+        case .serverError(let code, let msg):
+            if code == 401 {
+                return "Credenciales incorrectas. Verifica tu correo y contraseña."
+            }
+            return "Error del servidor (\(code)): \(msg)"
+        case .decodingError(let err): return "Error en formato de datos: \(err.localizedDescription)"
         case .networkError(let err): return "Error de red: \(err.localizedDescription)"
         }
     }
@@ -58,13 +62,25 @@ public final class APIClient: ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse else { throw APIError.networkError(URLError(.badServerResponse)) }
         
         if httpResponse.statusCode == 200 {
-            let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
-            keychain.save(key: "access_token", value: decoded.accessToken)
-            keychain.save(key: "refresh_token", value: decoded.refreshToken)
-            keychain.save(key: "tenant_id", value: decoded.tenant.id)
-            keychain.save(key: "user_email", value: decoded.user.email)
-            return decoded
+            do {
+                let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
+                keychain.save(key: "access_token", value: decoded.accessToken)
+                keychain.save(key: "refresh_token", value: decoded.refreshToken)
+                if let tenantId = decoded.tenant?.tenantId {
+                    keychain.save(key: "tenant_id", value: tenantId)
+                }
+                keychain.save(key: "user_email", value: decoded.user.email)
+                return decoded
+            } catch {
+                let raw = String(data: data, encoding: .utf8) ?? "N/A"
+                print("[Auth] Decoding LoginResponse error: \(error). Raw: \(raw)")
+                throw APIError.decodingError(error)
+            }
         } else {
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let detail = json["detail"] as? String {
+                throw APIError.serverError(httpResponse.statusCode, detail)
+            }
             let errorMsg = String(data: data, encoding: .utf8) ?? "Error en login"
             throw APIError.serverError(httpResponse.statusCode, errorMsg)
         }
@@ -174,6 +190,6 @@ public final class APIClient: ObservableObject {
     }
     
     public func getWSTicket() async throws -> WSTicketResponse {
-        return try await request(path: "/api/v1/ws/ticket", method: "POST")
+        return try await request(path: "/api/v1/ws-ticket", method: "POST")
     }
 }

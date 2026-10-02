@@ -24,7 +24,14 @@ public final class WebSocketService: ObservableObject {
                 let baseURL = APIClient.shared.baseURL
                 let wsBase = baseURL.replacingOccurrences(of: "http://", with: "ws://")
                                     .replacingOccurrences(of: "https://", with: "wss://")
-                let wsURLString = "\(wsBase)/ws/live?ticket=\(ticketResp.ticket)&v=2"
+                let wsURLString: String
+                if ticketResp.url.starts(with: "ws://") || ticketResp.url.starts(with: "wss://") {
+                    wsURLString = ticketResp.url
+                } else if ticketResp.url.starts(with: "/") {
+                    wsURLString = "\(wsBase)\(ticketResp.url)"
+                } else {
+                    wsURLString = "\(wsBase)/\(ticketResp.url)"
+                }
                 guard let url = URL(string: wsURLString) else { return }
                 
                 await MainActor.run {

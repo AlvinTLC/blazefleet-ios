@@ -22,11 +22,11 @@ public final class VehicleDetailViewModel: ObservableObject {
     private func bindWebSocket() {
         WebSocketService.shared.$positions
             .receive(on: DispatchQueue.main)
-            .compactMap { [weak self] dict in
+            .compactMap { [weak self] (dict: [String: LivePosition]) -> LivePosition? in
                 guard let self = self else { return nil }
                 return dict[self.vehicle.trackerId]
             }
-            .sink { [weak self] update in
+            .sink { [weak self] (update: LivePosition) in
                 guard let self = self else { return }
                 self.vehicle = MobileVehicleSummary(
                     vehicleId: self.vehicle.vehicleId,

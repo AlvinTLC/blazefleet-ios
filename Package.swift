@@ -5,8 +5,7 @@ let package = Package(
     name: "BlazeFleet",
     defaultLocalization: "es",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14)
+        .iOS(.v17)
     ],
     products: [
         .library(

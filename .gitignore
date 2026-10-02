@@ -1,0 +1,23 @@
+# Xcode
+build/
+*.xcuserstate
+project.xcworkspace
+xcuserdata
+DerivedData/
+*.xcresult
+
+# Swift Package Manager
+.build/
+Packages/
+
+# App Store Connect & Local Credentials
+*.p8
+*.mobileprovision
+*.cer
+*.p12
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*

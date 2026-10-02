@@ -1,9 +1,7 @@
 import SwiftUI
 
 public struct AlertsListView: View {
-    @ObservedObject var wsService = WebSocketService.shared
-    @State private var alerts: [NotificationItem] = []
-    @State private var isLoading = false
+    @StateObject private var alertsVM = AlertsViewModel()
     
     public init() {}
     
@@ -12,7 +10,15 @@ public struct AlertsListView: View {
             ZStack {
                 BlazeTheme.background.ignoresSafeArea()
                 
-                if alerts.isEmpty && !isLoading {
+                if alertsVM.isLoading && alertsVM.alerts.isEmpty {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(BlazeTheme.primary)
+                        Text("Cargando alertas...")
+                            .font(.system(size: 13))
+                            .foregroundColor(BlazeTheme.textSecondary)
+                    }
+                } else if alertsVM.alerts.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "bell.slash.fill")
                             .font(.system(size: 48))
@@ -28,23 +34,48 @@ public struct AlertsListView: View {
                     }
                 } else {
                     List {
-                        ForEach(alerts) { alert in
+                        ForEach(alertsVM.alerts) { alert in
                             AlertRow(alert: alert)
-                                .listRowBackground(BlazeTheme.surface)
+                                .listRowBackground(alert.read ? BlazeTheme.surface : BlazeTheme.surfaceElevated)
                                 .listRowSeparatorTint(BlazeTheme.surfaceBorder)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    if !alert.read {
+                                        Button {
+                                            alertsVM.markAsRead(alert: alert)
+                                        } label: {
+                                            Label("Leída", systemImage: "envelope.open.fill")
+                                        }
+                                        .tint(BlazeTheme.primary)
+                                    }
+                                }
+                                .onTapGesture {
+                                    if !alert.read {
+                                        alertsVM.markAsRead(alert: alert)
+                                    }
+                                }
                         }
                     }
                     .scrollContentBackground(.hidden)
+                    .refreshable {
+                        await alertsVM.fetchAlerts()
+                    }
                 }
             }
             .navigationTitle("Centro de Alertas")
             .navigationBarTitleDisplayMode(.inline)
-            .onReceive(wsService.$latestAlert) { newAlert in
-                if let alert = newAlert {
-                    withAnimation {
-                        alerts.insert(alert, at: 0)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Task { await alertsVM.fetchAlerts() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(BlazeTheme.primary)
                     }
                 }
+            }
+            .task {
+                await alertsVM.fetchAlerts()
             }
         }
     }
@@ -58,6 +89,8 @@ struct AlertRow: View {
         case "sos", "panic": return BlazeTheme.danger
         case "geofence_enter", "geofence_exit": return BlazeTheme.primary
         case "speeding": return BlazeTheme.idle
+        case "billing": return Color.orange
+        case "power_cut": return BlazeTheme.danger
         default: return BlazeTheme.secondary
         }
     }
@@ -70,8 +103,25 @@ struct AlertRow: View {
         case "speeding": return "speedometer"
         case "low_battery": return "battery.25"
         case "power_cut": return "powercord.fill"
+        case "billing": return "creditcard.fill"
         default: return "bell.fill"
         }
+    }
+    
+    private var formattedDate: String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var date = formatter.date(from: alert.createdAt)
+        if date == nil {
+            formatter.formatOptions = [.withInternetDateTime]
+            date = formatter.date(from: alert.createdAt)
+        }
+        guard let d = date else { return alert.createdAt }
+        
+        let relative = RelativeDateTimeFormatter()
+        relative.unitsStyle = .abbreviated
+        relative.locale = Locale(identifier: "es_DO")
+        return relative.localizedString(for: d, relativeTo: Date())
     }
     
     var body: some View {
@@ -79,24 +129,34 @@ struct AlertRow: View {
             ZStack {
                 Circle()
                     .fill(alertColor.opacity(0.15))
-                    .frame(width: 38, height: 38)
+                    .frame(width: 40, height: 40)
                 Image(systemName: alertIcon)
                     .foregroundColor(alertColor)
                     .font(.system(size: 16, weight: .bold))
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(alert.title)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(BlazeTheme.textPrimary)
+                HStack {
+                    Text(alert.title)
+                        .font(.system(size: 14, weight: alert.read ? .semibold : .bold))
+                        .foregroundColor(BlazeTheme.textPrimary)
+                    
+                    Spacer()
+                    
+                    if !alert.read {
+                        Circle()
+                            .fill(BlazeTheme.primary)
+                            .frame(width: 7, height: 7)
+                    }
+                }
                 
                 Text(alert.body)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(BlazeTheme.textSecondary)
-                    .lineLimit(2)
+                    .lineLimit(3)
                 
-                Text(alert.createdAt)
-                    .font(.system(size: 10))
+                Text(formattedDate)
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(BlazeTheme.textMuted)
                     .padding(.top, 2)
             }

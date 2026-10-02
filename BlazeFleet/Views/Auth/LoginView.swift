@@ -51,8 +51,8 @@ public struct LoginView: View {
                                 .foregroundColor(BlazeTheme.textMuted)
                             TextField("usuario@empresa.com", text: $authVM.email)
                                 .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled(true)
                                 .foregroundColor(BlazeTheme.textPrimary)
                         }
                         .padding()

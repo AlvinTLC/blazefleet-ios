@@ -115,6 +115,20 @@ public final class FleetViewModel: ObservableObject {
         if hasChanges {
             self.vehicles = updatedList
             self.lastUpdated = Date()
+            
+            let moving = updatedList.filter { $0.state == .moving }.count
+            let idle = updatedList.filter { $0.state == .idle }.count
+            let stopped = updatedList.filter { $0.state == .stopped }.count
+            let offline = updatedList.filter { $0.state == .offline }.count
+            let sos = updatedList.filter { $0.state == .sos }.count
+            self.counts = FleetSummaryCounts(
+                total: updatedList.count,
+                moving: moving,
+                idle: idle,
+                stopped: stopped,
+                offline: offline,
+                sos: sos
+            )
         }
     }
 }

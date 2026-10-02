@@ -21,6 +21,7 @@ public final class AuthViewModel: ObservableObject {
     public func checkExistingSession() {
         if keychain.get(key: "access_token") != nil {
             self.isAuthenticated = true
+            WebSocketService.shared.connect()
         }
     }
     

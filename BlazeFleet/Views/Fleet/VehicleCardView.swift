@@ -107,7 +107,7 @@ public struct VehicleCardView: View {
                     Image(systemName: "gauge.with.dots.needle.bottom.50percent")
                         .font(.system(size: 11))
                         .foregroundColor(BlazeTheme.textSecondary)
-                    Text("\(vehicle.vehicleOdometerKm) km")
+                    Text("\(vehicle.vehicleOdometerKm ?? 0) km")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(BlazeTheme.textMuted)
                 }

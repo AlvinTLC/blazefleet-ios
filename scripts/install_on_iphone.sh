@@ -23,6 +23,6 @@ echo "📲 Instalando BlazeFleet en iPhone..."
 xcrun devicectl device install app --device "$DEVICE_ID" "$APP_PATH"
 
 echo "🚀 Iniciando BlazeFleet..."
-xcrun devicectl device process launch --device "$DEVICE_ID" "$BUNDLE_ID"
+xcrun devicectl device process launch --device "$DEVICE_ID" "$BUNDLE_ID" || echo "ℹ️ Dispositivo con pantalla bloqueada. Desbloquea tu iPhone para abrir BlazeFleet."
 
-echo "✅ ¡BlazeFleet instalado y ejecutándose en tu iPhone!"
+echo "✅ ¡BlazeFleet instalado con éxito en tu iPhone!"

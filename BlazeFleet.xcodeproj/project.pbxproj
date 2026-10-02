@@ -25,17 +25,32 @@
 		70734496BEB9A2767551CF1D /* FleetSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68251D2AB4DED4502C2E43 /* FleetSummary.swift */; };
 		7BF34A4DCBD0D4151DE88F00 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 055A81C928BA29FE441D8686 /* PushNotificationManager.swift */; };
 		7F93D71CA353EA05A0753B6E /* RemoteCommandSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F377EB29A7B7B15F9C3B6F31 /* RemoteCommandSheet.swift */; };
+		88FF3D758B59A5390888C448 /* NotificationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A7D827379EF4E165B4B3D0 /* NotificationsTests.swift */; };
+		90107D5D7FCB4753EDA52F34 /* AuthModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FDB1FF4A8C8A4A72C2BE482 /* AuthModelTests.swift */; };
 		AD472514E61262530B8AC9C3 /* TelemetryGaugesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E4B2ED33AB16A077490C32 /* TelemetryGaugesView.swift */; };
+		B517996C4AF3662D288B2ECF /* FleetViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1DCA3B7A61E3E4567EEE3CC /* FleetViewModelTests.swift */; };
 		C2C1D073B9166BC4A3F23A5B /* AlertsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83434013AFFC35537C77DAFC /* AlertsListView.swift */; };
 		CA2134BA4A0CE8287FF5B9DD /* VehicleCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BF863D49421A4EC9F38B72 /* VehicleCardView.swift */; };
 		CCB7FD919565F08E7E5A7ADC /* FleetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8A56EC46EADE763B726B170 /* FleetListView.swift */; };
+		CEFC9236D6F408500086A318 /* AlertsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387D9D7EB2E8E3C5962BEC5C /* AlertsViewModel.swift */; };
 		D703CE5B3A9BEB6E3592E3F8 /* StatusFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 272BF12E7BD55C05FAD9ACAD /* StatusFilterBar.swift */; };
 		D982213CF72B477AC0B5911F /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281DBF17CE921D8B54CA1461 /* SparklineView.swift */; };
+		E60BCA2D980B0BF8F5F36822 /* FleetModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338D71D02DF4BC4D273088A8 /* FleetModelTests.swift */; };
 		ED8A919C9B89ABAE3093BDAD /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED0F596A976494F80344695D /* AuthViewModel.swift */; };
 		FB17288F2BBEB76BAFA0BF04 /* VehicleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 419FF7A63451E1B20F25AB8F /* VehicleDetailView.swift */; };
 		FB3290DFAA70CE240A34B345 /* BiometricAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E71B3EFD288A3ADDC1C95F /* BiometricAuthService.swift */; };
 		FC18C9FD4C344D649A908029 /* BrandTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090FE896AB9B5EF8826A2D1C /* BrandTheme.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		97D56ED58616F0A3714C0190 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B8FC636C958619728278943C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6DF2B8D1B52CE28847ED1C87;
+			remoteInfo = BlazeFleet;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		055A81C928BA29FE441D8686 /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
@@ -43,9 +58,14 @@
 		0C68251D2AB4DED4502C2E43 /* FleetSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetSummary.swift; sourceTree = "<group>"; };
 		14082D87BC583B59DE81956C /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		14F677BAE0D2E0D0BB43C067 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		15A7D827379EF4E165B4B3D0 /* NotificationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsTests.swift; sourceTree = "<group>"; };
 		272BF12E7BD55C05FAD9ACAD /* StatusFilterBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusFilterBar.swift; sourceTree = "<group>"; };
 		281DBF17CE921D8B54CA1461 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 		2BDB449F1B2031D11E5C5A4D /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		2EF53F3EB192065DB095E5EF /* BlazeFleetTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BlazeFleetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FDB1FF4A8C8A4A72C2BE482 /* AuthModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModelTests.swift; sourceTree = "<group>"; };
+		338D71D02DF4BC4D273088A8 /* FleetModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetModelTests.swift; sourceTree = "<group>"; };
+		387D9D7EB2E8E3C5962BEC5C /* AlertsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModel.swift; sourceTree = "<group>"; };
 		40E71B3EFD288A3ADDC1C95F /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthService.swift; sourceTree = "<group>"; };
 		419FF7A63451E1B20F25AB8F /* VehicleDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleDetailView.swift; sourceTree = "<group>"; };
 		4B3C3EFCFBB7F389C472C779 /* LivePosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePosition.swift; sourceTree = "<group>"; };
@@ -58,6 +78,7 @@
 		84784E839EBFE2858C277235 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		8489B9DE37BD119353BF9F6E /* VehicleDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleDetailViewModel.swift; sourceTree = "<group>"; };
 		8B3CE06B5484EAA0DC51AF18 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A1DCA3B7A61E3E4567EEE3CC /* FleetViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetViewModelTests.swift; sourceTree = "<group>"; };
 		AA7D17A3296ED8D2F7A9786B /* FleetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetViewModel.swift; sourceTree = "<group>"; };
 		B8A56EC46EADE763B726B170 /* FleetListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetListView.swift; sourceTree = "<group>"; };
 		CD72712EEFEC385E0A513864 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
@@ -81,6 +102,7 @@
 		209DAB21DB499811DB399C8B /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				387D9D7EB2E8E3C5962BEC5C /* AlertsViewModel.swift */,
 				ED0F596A976494F80344695D /* AuthViewModel.swift */,
 				AA7D17A3296ED8D2F7A9786B /* FleetViewModel.swift */,
 				8489B9DE37BD119353BF9F6E /* VehicleDetailViewModel.swift */,
@@ -95,6 +117,17 @@
 				D339A63EF9A9910B4DE6C15D /* BlazeFleetApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		5813AEE9B4E779F82154285D /* BlazeFleetTests */ = {
+			isa = PBXGroup;
+			children = (
+				2FDB1FF4A8C8A4A72C2BE482 /* AuthModelTests.swift */,
+				338D71D02DF4BC4D273088A8 /* FleetModelTests.swift */,
+				A1DCA3B7A61E3E4567EEE3CC /* FleetViewModelTests.swift */,
+				15A7D827379EF4E165B4B3D0 /* NotificationsTests.swift */,
+			);
+			path = BlazeFleetTests;
 			sourceTree = "<group>";
 		};
 		821585CAC7C741EAED944B2F /* Components */ = {
@@ -134,6 +167,7 @@
 			isa = PBXGroup;
 			children = (
 				84E16EC930C422F7EF79932F /* BlazeFleet */,
+				5813AEE9B4E779F82154285D /* BlazeFleetTests */,
 				B968F33591E1E30A73B96568 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -185,6 +219,7 @@
 			isa = PBXGroup;
 			children = (
 				D5D250BEBDD6E869DE39EDB4 /* BlazeFleet.app */,
+				2EF53F3EB192065DB095E5EF /* BlazeFleetTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -238,6 +273,24 @@
 			productReference = D5D250BEBDD6E869DE39EDB4 /* BlazeFleet.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E934F6AC0B3E0CB0CEDE20C2 /* BlazeFleetTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D984A905ED632C6465867F04 /* Build configuration list for PBXNativeTarget "BlazeFleetTests" */;
+			buildPhases = (
+				3383BA78145AEA3DE07A8893 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C8871E7C908ED0CC7FBDAFC7 /* PBXTargetDependency */,
+			);
+			name = BlazeFleetTests;
+			packageProductDependencies = (
+			);
+			productName = BlazeFleetTests;
+			productReference = 2EF53F3EB192065DB095E5EF /* BlazeFleetTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -248,6 +301,10 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					6DF2B8D1B52CE28847ED1C87 = {
+						DevelopmentTeam = ULWH23TGXJ;
+						ProvisioningStyle = Automatic;
+					};
+					E934F6AC0B3E0CB0CEDE20C2 = {
 						DevelopmentTeam = ULWH23TGXJ;
 						ProvisioningStyle = Automatic;
 					};
@@ -268,6 +325,7 @@
 			projectRoot = "";
 			targets = (
 				6DF2B8D1B52CE28847ED1C87 /* BlazeFleet */,
+				E934F6AC0B3E0CB0CEDE20C2 /* BlazeFleetTests */,
 			);
 		};
 /* End PBXProject section */
@@ -284,12 +342,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3383BA78145AEA3DE07A8893 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				90107D5D7FCB4753EDA52F34 /* AuthModelTests.swift in Sources */,
+				E60BCA2D980B0BF8F5F36822 /* FleetModelTests.swift in Sources */,
+				B517996C4AF3662D288B2ECF /* FleetViewModelTests.swift in Sources */,
+				88FF3D758B59A5390888C448 /* NotificationsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		74655796BD2A712C25CFFE58 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				09D62032205C3B58ABBA7593 /* APIClient.swift in Sources */,
 				C2C1D073B9166BC4A3F23A5B /* AlertsListView.swift in Sources */,
+				CEFC9236D6F408500086A318 /* AlertsViewModel.swift in Sources */,
 				2A6A4132A8005F4E5E2A2689 /* AppDelegate.swift in Sources */,
 				6CBA6634CD19B6A94CC033DE /* AuthResponse.swift in Sources */,
 				ED8A919C9B89ABAE3093BDAD /* AuthViewModel.swift in Sources */,
@@ -320,7 +390,35 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		C8871E7C908ED0CC7FBDAFC7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6DF2B8D1B52CE28847ED1C87 /* BlazeFleet */;
+			targetProxy = 97D56ED58616F0A3714C0190 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		21AE358FE64EECC405BB3EA9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ULWH23TGXJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = do.blaze.fleet.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BlazeFleet.app/BlazeFleet";
+			};
+			name = Release;
+		};
 		297291CA83CBDE47ACF81A1A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -494,6 +592,26 @@
 			};
 			name = Debug;
 		};
+		BD0E2C31C908BE5B972D4F55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ULWH23TGXJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = do.blaze.fleet.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BlazeFleet.app/BlazeFleet";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -511,6 +629,15 @@
 			buildConfigurations = (
 				9C70DF9E4AF9E027EA2D80BC /* Debug */,
 				8A71B0A064714B35082DCA8E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D984A905ED632C6465867F04 /* Build configuration list for PBXNativeTarget "BlazeFleetTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD0E2C31C908BE5B972D4F55 /* Debug */,
+				21AE358FE64EECC405BB3EA9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

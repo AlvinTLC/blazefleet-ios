@@ -13,6 +13,7 @@ public struct StatusChip: View {
         case .idle: return BlazeTheme.idle
         case .stopped: return BlazeTheme.stopped
         case .offline: return BlazeTheme.offline
+        case .sos: return BlazeTheme.danger
         }
     }
     

@@ -80,8 +80,43 @@ struct SettingsView: View {
                             Text("WebSocket Live Stream")
                                 .foregroundColor(BlazeTheme.textSecondary)
                             Spacer()
-                            Text(WebSocketService.shared.isConnected ? "Conectado" : "Desconectado")
-                                .foregroundColor(WebSocketService.shared.isConnected ? BlazeTheme.moving : BlazeTheme.danger)
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(WebSocketService.shared.isConnected ? BlazeTheme.moving : BlazeTheme.danger)
+                                    .frame(width: 8, height: 8)
+                                Text(WebSocketService.shared.isConnected ? "Conectado" : "Desconectado")
+                                    .foregroundColor(WebSocketService.shared.isConnected ? BlazeTheme.moving : BlazeTheme.danger)
+                            }
+                        }
+                        if !WebSocketService.shared.isConnected {
+                            Button {
+                                WebSocketService.shared.connect()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                    Text("Reconectar ahora")
+                                }
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(BlazeTheme.primary)
+                            }
+                        }
+                    }
+                    .listRowBackground(BlazeTheme.surface)
+                    
+                    Section("Acerca de") {
+                        HStack {
+                            Text("Versión de la App")
+                                .foregroundColor(BlazeTheme.textSecondary)
+                            Spacer()
+                            Text("\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
+                                .foregroundColor(BlazeTheme.textPrimary)
+                        }
+                        HStack {
+                            Text("Notificaciones Push")
+                                .foregroundColor(BlazeTheme.textSecondary)
+                            Spacer()
+                            Text(PushNotificationManager.shared.hasPermission ? "Activas" : "Inactivas")
+                                .foregroundColor(PushNotificationManager.shared.hasPermission ? BlazeTheme.moving : BlazeTheme.textMuted)
                         }
                     }
                     .listRowBackground(BlazeTheme.surface)

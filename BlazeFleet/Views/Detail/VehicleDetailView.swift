@@ -149,9 +149,24 @@ public struct VehicleDetailView: View {
                     // Mini Map Position Preview
                     if let lat = detailVM.vehicle.lat, let lng = detailVM.vehicle.lng {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Ubicación Actual")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(BlazeTheme.textSecondary)
+                            HStack {
+                                Text("Ubicación Actual")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(BlazeTheme.textSecondary)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    UIPasteboard.general.string = "\(lat), \(lng)"
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "doc.on.doc")
+                                        Text(String(format: "%.4f, %.4f", lat, lng))
+                                    }
+                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                    .foregroundColor(BlazeTheme.primary)
+                                }
+                            }
                             
                             Map(position: .constant(.camera(MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng), distance: 1500)))) {
                                 Annotation(detailVM.vehicle.plate, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)) {
@@ -164,6 +179,80 @@ public struct VehicleDetailView: View {
                                 RoundedRectangle(cornerRadius: 16)
                                     .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
                             )
+                            
+                            // Navigation Shortcuts
+                            HStack(spacing: 10) {
+                                Button {
+                                    if let url = URL(string: "maps://?daddr=\(lat),\(lng)&dirflg=d"), UIApplication.shared.canOpenURL(url) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "map.fill")
+                                        Text("Apple Maps")
+                                    }
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 38)
+                                    .background(BlazeTheme.surface)
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
+                                    )
+                                }
+                                
+                                Button {
+                                    let googleURL = URL(string: "comgooglemaps://?daddr=\(lat),\(lng)&directionsmode=driving")
+                                    let webURL = URL(string: "https://www.google.com/maps/dir/?api=1&destination=\(lat),\(lng)")!
+                                    if let gUrl = googleURL, UIApplication.shared.canOpenURL(gUrl) {
+                                        UIApplication.shared.open(gUrl)
+                                    } else {
+                                        UIApplication.shared.open(webURL)
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                                        Text("Google Maps")
+                                    }
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 38)
+                                    .background(BlazeTheme.surface)
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
+                                    )
+                                }
+                                
+                                Button {
+                                    let wazeURL = URL(string: "waze://?ll=\(lat),\(lng)&navigate=yes")
+                                    let webURL = URL(string: "https://waze.com/ul?ll=\(lat),\(lng)&navigate=yes")!
+                                    if let wUrl = wazeURL, UIApplication.shared.canOpenURL(wUrl) {
+                                        UIApplication.shared.open(wUrl)
+                                    } else {
+                                        UIApplication.shared.open(webURL)
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "car.fill")
+                                        Text("Waze")
+                                    }
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 38)
+                                    .background(BlazeTheme.surface)
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

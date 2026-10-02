@@ -65,3 +65,18 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ULWH23TGXJ
+
+  BlazeFleetTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BlazeFleetTests
+    dependencies:
+      - target: BlazeFleet
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: do.blaze.fleet.tests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ULWH23TGXJ

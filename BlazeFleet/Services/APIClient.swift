@@ -192,4 +192,25 @@ public final class APIClient: ObservableObject {
     public func getWSTicket() async throws -> WSTicketResponse {
         return try await request(path: "/api/v1/ws-ticket", method: "POST")
     }
+    
+    // MARK: - Notifications & Events
+    
+    public func getNotifications(limit: Int = 50) async throws -> [NotificationItem] {
+        let resp: NotificationsResponse = try await request(path: "/api/v1/notifications?limit=\(limit)")
+        return resp.items
+    }
+    
+    public func markNotificationRead(id: String) async throws {
+        let _: Data = try await request(path: "/api/v1/notifications/\(id)/read", method: "POST")
+    }
+    
+    public func getEvents(vehicleId: String? = nil, limit: Int = 30) async throws -> [EventItem] {
+        var path = "/api/v1/events?limit=\(limit)"
+        if let vId = vehicleId {
+            path += "&vehicle_id=\(vId)"
+        }
+        let resp: EventsResponse = try await request(path: path)
+        return resp.items
+    }
 }
+

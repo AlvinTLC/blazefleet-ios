@@ -25,6 +25,8 @@ struct BlazeFleetApp: App {
         UITabBar.appearance().scrollEdgeAppearance = tabAppearance
     }
     
+    @Environment(\.scenePhase) private var scenePhase
+    
     var body: some Scene {
         WindowGroup {
             Group {
@@ -35,6 +37,13 @@ struct BlazeFleetApp: App {
                 }
             }
             .preferredColorScheme(.dark)
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active && authVM.isAuthenticated {
+                    if !WebSocketService.shared.isConnected {
+                        WebSocketService.shared.connect()
+                    }
+                }
+            }
         }
     }
 }

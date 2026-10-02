@@ -22,7 +22,7 @@ public struct TelemetryGaugesView: View {
             GaugeTile(
                 icon: "gauge.with.dots.needle.bottom.50percent",
                 title: "Odómetro",
-                value: "\(vehicle.vehicleOdometerKm)",
+                value: "\(vehicle.vehicleOdometerKm ?? 0)",
                 unit: "km",
                 tint: BlazeTheme.primary
             )

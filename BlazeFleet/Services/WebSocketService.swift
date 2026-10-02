@@ -107,21 +107,30 @@ public final class WebSocketService: ObservableObject {
     }
     
     private func handlePayload(_ data: Data) {
-        // Try decoding as position or notification envelope
-        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            let type = json["type"] as? String
-            
-            if type == "notification" {
-                if let alert = try? JSONDecoder().decode(NotificationItem.self, from: data) {
-                    DispatchQueue.main.async {
-                        self.latestAlert = alert
-                    }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+        let type = json["type"] as? String
+        
+        // Ignore initial websocket connected acknowledgement
+        if type == "connected" {
+            return
+        }
+        
+        if type == "notification" || json["kind"] != nil {
+            if let alert = try? JSONDecoder().decode(NotificationItem.self, from: data) {
+                DispatchQueue.main.async {
+                    self.latestAlert = alert
                 }
-            } else {
-                if let pos = try? JSONDecoder().decode(LivePosition.self, from: data) {
-                    DispatchQueue.main.async {
-                        self.positions[pos.trackerId] = pos
-                    }
+            }
+        } else {
+            if let pos = try? JSONDecoder().decode(LivePosition.self, from: data) {
+                DispatchQueue.main.async {
+                    self.positions[pos.trackerId] = pos
+                }
+            } else if let nested = json["data"] as? [String: Any],
+                      let nestedData = try? JSONSerialization.data(withJSONObject: nested),
+                      let pos = try? JSONDecoder().decode(LivePosition.self, from: nestedData) {
+                DispatchQueue.main.async {
+                    self.positions[pos.trackerId] = pos
                 }
             }
         }

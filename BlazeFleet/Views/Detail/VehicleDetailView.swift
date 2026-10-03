@@ -322,6 +322,7 @@ public struct VehicleDetailView: View {
         }
         .navigationTitle(detailVM.vehicle.plate)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
         .task {
             await detailVM.fetchRecentEvents()
         }

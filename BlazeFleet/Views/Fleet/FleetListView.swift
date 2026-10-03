@@ -14,30 +14,61 @@ public struct FleetListView: View {
                 BlazeTheme.background.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Search bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(BlazeTheme.textMuted)
-                        TextField("Buscar placa, modelo, chofer...", text: $fleetVM.searchQuery)
-                            .foregroundColor(BlazeTheme.textPrimary)
-                        if !fleetVM.searchQuery.isEmpty {
-                            Button {
-                                fleetVM.searchQuery = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(BlazeTheme.textMuted)
+                    // Top Search & Status Bar
+                    HStack(spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(BlazeTheme.textMuted)
+                            TextField("Buscar placa, modelo, chofer...", text: $fleetVM.searchQuery)
+                                .foregroundColor(BlazeTheme.textPrimary)
+                            if !fleetVM.searchQuery.isEmpty {
+                                Button {
+                                    fleetVM.searchQuery = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(BlazeTheme.textMuted)
+                                }
                             }
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(BlazeTheme.surface)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
+                        )
+                        
+                        // Live / Refresh Action Button
+                        Button {
+                            Task { await fleetVM.fetchSummary() }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                                    .frame(width: 7, height: 7)
+                                if fleetVM.isLoading {
+                                    ProgressView()
+                                        .controlSize(.mini)
+                                        .tint(BlazeTheme.primary)
+                                } else {
+                                    Image(systemName: "arrow.clockwise")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundColor(BlazeTheme.primary)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .frame(height: 42)
+                            .background(BlazeTheme.surface)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
+                            )
+                        }
                     }
-                    .padding(12)
-                    .background(BlazeTheme.surface)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
-                    )
                     .padding(.horizontal, 16)
-                    .padding(.top, 10)
+                    .padding(.top, 8)
                     
                     // Filter bar
                     StatusFilterBar(selected: $fleetVM.selectedFilter, counts: fleetVM.counts)
@@ -83,34 +114,7 @@ public struct FleetListView: View {
                     }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
-                        Text("Flota")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(BlazeTheme.textPrimary)
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
-                                .frame(width: 6, height: 6)
-                            Text(wsService.isConnected ? "En vivo" : "Reconectando...")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(BlazeTheme.textSecondary)
-                        }
-                    }
-                }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task { await fleetVM.fetchSummary() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(BlazeTheme.primary)
-                    }
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .task {
             if fleetVM.vehicles.isEmpty {

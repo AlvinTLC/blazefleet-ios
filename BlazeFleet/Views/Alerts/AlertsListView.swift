@@ -11,15 +11,35 @@ public struct AlertsListView: View {
                 BlazeTheme.background.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Segment Selector
-                    Picker("Vista", selection: $alertsVM.selectedSegment) {
-                        Text("Eventos GPS (\(alertsVM.events.count))").tag(0)
-                        Text("Alertas (\(alertsVM.notifications.count))").tag(1)
+                    // Top Bar: Segment Selector + Refresh Button
+                    HStack(spacing: 12) {
+                        Picker("Vista", selection: $alertsVM.selectedSegment) {
+                            Text("Eventos GPS (\(alertsVM.events.count))").tag(0)
+                            Text("Alertas (\(alertsVM.notifications.count))").tag(1)
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        Button {
+                            Task { await alertsVM.fetchAll() }
+                        } label: {
+                            if alertsVM.isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(BlazeTheme.primary)
+                                    .frame(width: 36, height: 36)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(BlazeTheme.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(BlazeTheme.surface)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
+                            }
+                        }
                     }
-                    .pickerStyle(.segmented)
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(BlazeTheme.surface)
+                    .padding(.vertical, 8)
                     
                     if alertsVM.isLoading && alertsVM.events.isEmpty && alertsVM.notifications.isEmpty {
                         Spacer()
@@ -83,25 +103,7 @@ public struct AlertsListView: View {
                     }
                 }
             }
-            .navigationTitle("Centro de Alertas")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task { await alertsVM.fetchAll() }
-                    } label: {
-                        if alertsVM.isLoading {
-                            ProgressView()
-                                .controlSize(.small)
-                                .tint(BlazeTheme.primary)
-                        } else {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(BlazeTheme.primary)
-                        }
-                    }
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .task {
                 await alertsVM.fetchAll()
             }

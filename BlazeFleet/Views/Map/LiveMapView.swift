@@ -244,8 +244,7 @@ public struct LiveMapView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .navigationTitle("Mapa en Vivo")
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
         }
         .task {
             if fleetVM.vehicles.isEmpty {

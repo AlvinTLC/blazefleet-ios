@@ -57,6 +57,24 @@ public struct VehicleDetailView: View {
                             
                             Spacer()
                             
+                            if let speed = detailVM.vehicle.speedKmh, detailVM.vehicle.state == .moving || speed > 0 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "speedometer")
+                                        .font(.system(size: 11, weight: .bold))
+                                    Text("\(Int(speed.rounded())) km/h")
+                                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                                }
+                                .foregroundColor(BlazeTheme.moving)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(BlazeTheme.moving.opacity(0.18))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(BlazeTheme.moving.opacity(0.35), lineWidth: 1)
+                                )
+                            }
+                            
                             StatusChip(state: detailVM.vehicle.state)
                         }
                         
@@ -169,7 +187,7 @@ public struct VehicleDetailView: View {
                             }
                             
                             Map(position: .constant(.camera(MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng), distance: 1500)))) {
-                                Annotation(detailVM.vehicle.plate, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)) {
+                                Annotation("", coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)) {
                                     VehicleAnnotationView(vehicle: detailVM.vehicle, isSelected: true)
                                 }
                             }

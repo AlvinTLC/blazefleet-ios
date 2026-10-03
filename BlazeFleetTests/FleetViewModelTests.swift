@@ -121,4 +121,51 @@ final class FleetViewModelTests: XCTestCase {
         viewModel.searchQuery = "hilux" // hilux is moving
         XCTAssertEqual(viewModel.filteredVehicles.count, 1)
     }
+    
+    func testLivePositionSpeedAndStateMerging() {
+        // Given moving vehicle with 65 km/h
+        XCTAssertEqual(viewModel.vehicles.first?.speedKmh, 65.0)
+        XCTAssertEqual(viewModel.vehicles.first?.state, .moving)
+        
+        // When a WebSocket live position update arrives with higher speed
+        let update = LivePosition(
+            trackerId: "t-1",
+            vehicleId: "v-1",
+            plate: "A111111",
+            state: .moving,
+            speedKmh: 92.5
+        )
+        WebSocketService.shared.positions["t-1"] = update
+        
+        // Wait briefly for Combine pipeline
+        let exp = expectation(description: "WebSocket update merged")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let updated = self.viewModel.vehicles.first { $0.trackerId == "t-1" }
+            XCTAssertEqual(updated?.speedKmh, 92.5)
+            XCTAssertEqual(updated?.state, .moving)
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 1.0)
+    }
+    
+    func testLivePositionVehicleStopsResetsSpeed() {
+        // When vehicle stops, speed resets to 0.0
+        let stoppedUpdate = LivePosition(
+            trackerId: "t-1",
+            vehicleId: "v-1",
+            plate: "A111111",
+            state: .stopped,
+            speedKmh: nil
+        )
+        WebSocketService.shared.positions["t-1"] = stoppedUpdate
+        
+        let exp = expectation(description: "Vehicle stopped speed reset")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let updated = self.viewModel.vehicles.first { $0.trackerId == "t-1" }
+            XCTAssertEqual(updated?.speedKmh, 0.0)
+            XCTAssertEqual(updated?.state, .stopped)
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 1.0)
+    }
 }

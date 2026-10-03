@@ -56,18 +56,30 @@ public struct VehicleAnnotationView: View {
                 }
             }
             
-            // License Plate Pill
-            Text(vehicle.plate)
-                .font(.system(size: 10, weight: .black, design: .monospaced))
-                .foregroundColor(BlazeTheme.textPrimary)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
-                .background(BlazeTheme.surface.opacity(0.95))
-                .cornerRadius(4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(BlazeTheme.surfaceBorder, lineWidth: 0.5)
-                )
+            // License Plate & Speed Pill
+            HStack(spacing: 3) {
+                Text(vehicle.plate)
+                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .foregroundColor(BlazeTheme.textPrimary)
+                
+                if let speed = vehicle.speedKmh, vehicle.state == .moving || speed > 0 {
+                    Text("•")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(BlazeTheme.moving)
+                    
+                    Text("\(Int(speed.rounded())) km/h")
+                        .font(.system(size: 9, weight: .heavy, design: .rounded))
+                        .foregroundColor(BlazeTheme.moving)
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2.5)
+            .background(BlazeTheme.surface.opacity(0.95))
+            .cornerRadius(5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(vehicle.state == .moving ? BlazeTheme.moving.opacity(0.6) : BlazeTheme.surfaceBorder, lineWidth: 0.8)
+            )
         }
     }
 }

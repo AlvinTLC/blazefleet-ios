@@ -38,22 +38,32 @@ public final class VehicleDetailViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .compactMap { [weak self] (dict: [String: LivePosition]) -> LivePosition? in
                 guard let self = self else { return nil }
-                return dict[self.vehicle.trackerId]
+                return dict[self.vehicle.trackerId] ?? (self.vehicle.vehicleId.isEmpty ? nil : dict[self.vehicle.vehicleId])
             }
             .sink { [weak self] (update: LivePosition) in
                 guard let self = self else { return }
+                let newState = update.state ?? self.vehicle.state
+                let newSpeed: Double?
+                if let s = update.speedKmh {
+                    newSpeed = s
+                } else if newState == .stopped || newState == .idle {
+                    newSpeed = 0.0
+                } else {
+                    newSpeed = self.vehicle.speedKmh
+                }
+                
                 self.vehicle = MobileVehicleSummary(
-                    vehicleId: self.vehicle.vehicleId,
-                    trackerId: self.vehicle.trackerId,
-                    plate: update.plate ?? self.vehicle.plate,
-                    vehicleModel: update.vehicleModel ?? self.vehicle.vehicleModel,
+                    vehicleId: self.vehicle.vehicleId.isEmpty ? (update.vehicleId ?? "") : self.vehicle.vehicleId,
+                    trackerId: self.vehicle.trackerId.isEmpty ? update.trackerId : self.vehicle.trackerId,
+                    plate: (update.plate?.isEmpty ?? true) ? self.vehicle.plate : update.plate!,
+                    vehicleModel: (update.vehicleModel?.isEmpty ?? true) ? self.vehicle.vehicleModel : update.vehicleModel!,
                     driverName: update.driverName ?? self.vehicle.driverName,
                     driverPhone: self.vehicle.driverPhone,
-                    state: update.state ?? self.vehicle.state,
+                    state: newState,
                     time: update.time ?? self.vehicle.time,
                     lat: update.lat ?? self.vehicle.lat,
                     lng: update.lng ?? self.vehicle.lng,
-                    speedKmh: update.speedKmh ?? self.vehicle.speedKmh,
+                    speedKmh: newSpeed,
                     course: update.course ?? self.vehicle.course,
                     ignition: update.ignition ?? self.vehicle.ignition,
                     satellites: update.satellites ?? self.vehicle.satellites,

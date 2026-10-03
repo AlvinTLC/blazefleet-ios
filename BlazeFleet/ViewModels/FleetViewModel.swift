@@ -87,19 +87,31 @@ public final class FleetViewModel: ObservableObject {
         var hasChanges = false
         
         for (index, v) in updatedList.enumerated() {
-            if let update = liveMap[v.trackerId] {
+            let update = liveMap[v.trackerId] ?? (v.vehicleId.isEmpty ? nil : liveMap[v.vehicleId])
+            if let update = update {
                 let newState = update.state ?? v.state
+                
+                let newSpeed: Double?
+                if let s = update.speedKmh {
+                    newSpeed = s
+                } else if newState == .stopped || newState == .idle {
+                    newSpeed = 0.0
+                } else {
+                    newSpeed = v.speedKmh
+                }
+                
                 let updated = MobileVehicleSummary(
-                    vehicleId: v.vehicleId,
-                    trackerId: v.trackerId,
-                    plate: update.plate ?? v.plate,
-                    vehicleModel: update.vehicleModel ?? v.vehicleModel,
+                    vehicleId: v.vehicleId.isEmpty ? (update.vehicleId ?? "") : v.vehicleId,
+                    trackerId: v.trackerId.isEmpty ? update.trackerId : v.trackerId,
+                    plate: (update.plate?.isEmpty ?? true) ? v.plate : update.plate!,
+                    vehicleModel: (update.vehicleModel?.isEmpty ?? true) ? v.vehicleModel : update.vehicleModel!,
                     driverName: update.driverName ?? v.driverName,
+                    driverPhone: v.driverPhone,
                     state: newState,
                     time: update.time ?? v.time,
                     lat: update.lat ?? v.lat,
                     lng: update.lng ?? v.lng,
-                    speedKmh: update.speedKmh ?? v.speedKmh,
+                    speedKmh: newSpeed,
                     course: update.course ?? v.course,
                     ignition: update.ignition ?? v.ignition,
                     satellites: update.satellites ?? v.satellites,

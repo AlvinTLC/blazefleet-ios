@@ -14,9 +14,13 @@ public final class WebSocketService: ObservableObject {
     private var reconnectAttempt = 0
     private var isIntentionalDisconnect = false
     
+    private var isConnecting = false
+    
     private init() {}
     
     public func connect() {
+        guard !isConnected && !isConnecting else { return }
+        isConnecting = true
         isIntentionalDisconnect = false
         Task {
             do {
@@ -32,12 +36,17 @@ public final class WebSocketService: ObservableObject {
                 } else {
                     wsURLString = "\(wsBase)/\(ticketResp.url)"
                 }
-                guard let url = URL(string: wsURLString) else { return }
+                guard let url = URL(string: wsURLString) else {
+                    self.isConnecting = false
+                    return
+                }
                 
                 await MainActor.run {
+                    self.isConnecting = false
                     self.startSocket(url: url)
                 }
             } catch {
+                self.isConnecting = false
                 scheduleReconnect()
             }
         }
@@ -45,6 +54,7 @@ public final class WebSocketService: ObservableObject {
     
     public func disconnect() {
         isIntentionalDisconnect = true
+        isConnecting = false
         pingTimer?.invalidate()
         pingTimer = nil
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
@@ -55,12 +65,15 @@ public final class WebSocketService: ObservableObject {
     }
     
     private func startSocket(url: URL) {
-        webSocketTask?.cancel()
+        if let old = webSocketTask {
+            old.cancel(with: .normalClosure, reason: nil)
+        }
         var request = URLRequest(url: url)
         request.setValue("BlazeFleet-iOS/1.0", forHTTPHeaderField: "User-Agent")
         
-        webSocketTask = session.webSocketTask(with: request)
-        webSocketTask?.resume()
+        let newTask = session.webSocketTask(with: request)
+        self.webSocketTask = newTask
+        newTask.resume()
         
         DispatchQueue.main.async {
             self.isConnected = true
@@ -68,12 +81,19 @@ public final class WebSocketService: ObservableObject {
         }
         
         startPing()
-        receiveMessage()
+        receiveMessage(for: newTask)
+    }
+    
+    public func reconnectNow() {
+        guard !isConnected else { return }
+        isConnecting = false
+        reconnectAttempt = 0
+        connect()
     }
     
     private func startPing() {
         pingTimer?.invalidate()
-        pingTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 20.0, repeats: true) { [weak self] _ in
             self?.webSocketTask?.sendPing { error in
                 if let error = error {
                     print("[WS] Ping error: \(error.localizedDescription)")
@@ -81,11 +101,13 @@ public final class WebSocketService: ObservableObject {
                 }
             }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        pingTimer = timer
     }
     
-    private func receiveMessage() {
-        webSocketTask?.receive { [weak self] result in
-            guard let self = self else { return }
+    private func receiveMessage(for task: URLSessionWebSocketTask) {
+        task.receive { [weak self, weak task] result in
+            guard let self = self, let task = task, task == self.webSocketTask else { return }
             switch result {
             case .success(let message):
                 switch message {
@@ -98,8 +120,12 @@ public final class WebSocketService: ObservableObject {
                 @unknown default:
                     break
                 }
-                self.receiveMessage()
+                self.receiveMessage(for: task)
             case .failure(let error):
+                let nsError = error as NSError
+                if nsError.code == NSURLErrorCancelled || nsError.code == -999 {
+                    return
+                }
                 print("[WS] Receive error: \(error.localizedDescription)")
                 self.handleDisconnect()
             }
@@ -122,15 +148,23 @@ public final class WebSocketService: ObservableObject {
                 }
             }
         } else {
+            let decodedPos: LivePosition?
             if let pos = try? JSONDecoder().decode(LivePosition.self, from: data) {
-                DispatchQueue.main.async {
-                    self.positions[pos.trackerId] = pos
-                }
+                decodedPos = pos
             } else if let nested = json["data"] as? [String: Any],
                       let nestedData = try? JSONSerialization.data(withJSONObject: nested),
                       let pos = try? JSONDecoder().decode(LivePosition.self, from: nestedData) {
+                decodedPos = pos
+            } else {
+                decodedPos = nil
+            }
+            
+            if let pos = decodedPos {
                 DispatchQueue.main.async {
                     self.positions[pos.trackerId] = pos
+                    if let vId = pos.vehicleId, !vId.isEmpty {
+                        self.positions[vId] = pos
+                    }
                 }
             }
         }
@@ -149,7 +183,7 @@ public final class WebSocketService: ObservableObject {
     
     private func scheduleReconnect() {
         reconnectAttempt += 1
-        let delay = min(pow(2.0, Double(reconnectAttempt)), 30.0)
+        let delay = min(2.0 * Double(reconnectAttempt), 10.0)
         DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self = self, !self.isIntentionalDisconnect else { return }
             self.connect()

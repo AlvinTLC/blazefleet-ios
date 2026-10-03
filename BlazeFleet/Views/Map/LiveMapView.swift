@@ -13,7 +13,7 @@ public struct LiveMapView: View {
     @ObservedObject var fleetVM: FleetViewModel
     @ObservedObject var wsService = WebSocketService.shared
     @State private var position: MapCameraPosition = .automatic
-    @State private var selectedVehicle: MobileVehicleSummary?
+    @State private var selectedVehicleId: String?
     @State private var selectedMapStyle: FleetMapStyle = .standard
     @State private var showTraffic = false
     
@@ -22,6 +22,15 @@ public struct LiveMapView: View {
     
     public init(fleetVM: FleetViewModel) {
         self.fleetVM = fleetVM
+    }
+    
+    private var selectedVehicle: MobileVehicleSummary? {
+        guard let id = selectedVehicleId else { return nil }
+        return fleetVM.vehicles.first { $0.id == id || $0.trackerId == id || $0.vehicleId == id }
+    }
+    
+    private var anyVehicleMoving: Bool {
+        fleetVM.vehicles.contains { $0.state == .moving }
     }
     
     private var activeMapStyle: MapStyle {
@@ -43,16 +52,16 @@ public struct LiveMapView: View {
                     ForEach(fleetVM.vehicles) { vehicle in
                         if let lat = vehicle.lat, let lng = vehicle.lng {
                             Annotation(
-                                vehicle.plate,
+                                "",
                                 coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)
                             ) {
                                 VehicleAnnotationView(
                                     vehicle: vehicle,
-                                    isSelected: selectedVehicle?.id == vehicle.id
+                                    isSelected: selectedVehicleId == vehicle.id || selectedVehicleId == vehicle.trackerId || selectedVehicleId == vehicle.vehicleId
                                 )
                                 .onTapGesture {
                                     withAnimation(.spring(response: 0.35)) {
-                                        selectedVehicle = vehicle
+                                        selectedVehicleId = vehicle.id
                                         position = .camera(MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng), distance: 2500))
                                     }
                                 }
@@ -66,28 +75,40 @@ public struct LiveMapView: View {
                 // Top Floating Status Banner
                 VStack {
                     HStack {
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
-                                .frame(width: 8, height: 8)
-                            
-                            Text("\(fleetVM.vehicles.count) unidades")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(BlazeTheme.textPrimary)
-                            
-                            Text("•")
-                                .foregroundColor(BlazeTheme.textMuted)
-                            
-                            Text(wsService.isConnected ? "En vivo" : "Sincronizando...")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                        Button {
+                            wsService.reconnectNow()
+                            Task { await fleetVM.fetchSummary() }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                                    .frame(width: 8, height: 8)
+                                
+                                Text("\(fleetVM.vehicles.count) unidades")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                                
+                                Text("•")
+                                    .foregroundColor(BlazeTheme.textMuted)
+                                
+                                Text(wsService.isConnected ? "En vivo" : "Sincronizando...")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                                
+                                if !wsService.isConnected {
+                                    Image(systemName: "arrow.clockwise")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(BlazeTheme.idle)
+                                }
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(BlazeTheme.surface.opacity(0.92))
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
+                            .shadow(color: .black.opacity(0.3), radius: 6, y: 2)
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(BlazeTheme.surface.opacity(0.92))
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
-                        .shadow(color: .black.opacity(0.3), radius: 6, y: 2)
+                        .buttonStyle(.plain)
                         
                         Spacer()
                     }
@@ -179,7 +200,7 @@ public struct LiveMapView: View {
                             Spacer()
                             
                             Button {
-                                withAnimation { selectedVehicle = nil }
+                                withAnimation { selectedVehicleId = nil }
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(BlazeTheme.textMuted)
@@ -192,7 +213,7 @@ public struct LiveMapView: View {
                             .padding(.vertical, 10)
                         
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 6) {
                                 HStack(spacing: 5) {
                                     Image(systemName: "person.circle.fill")
                                         .font(.system(size: 13))
@@ -204,6 +225,37 @@ public struct LiveMapView: View {
                                 
                                 HStack(spacing: 8) {
                                     StatusChip(state: v.state)
+                                    
+                                    // Prominent Speed Badge
+                                    if let speed = v.speedKmh, v.state == .moving || speed > 0 {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "speedometer")
+                                                .font(.system(size: 11, weight: .bold))
+                                            Text("\(Int(speed.rounded())) km/h")
+                                                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                                        }
+                                        .foregroundColor(BlazeTheme.moving)
+                                        .padding(.horizontal, 7)
+                                        .padding(.vertical, 3)
+                                        .background(BlazeTheme.moving.opacity(0.18))
+                                        .cornerRadius(6)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(BlazeTheme.moving.opacity(0.35), lineWidth: 1)
+                                        )
+                                    } else if v.state == .stopped {
+                                        HStack(spacing: 3) {
+                                            Image(systemName: "speedometer")
+                                                .font(.system(size: 10))
+                                            Text("0 km/h")
+                                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                        }
+                                        .foregroundColor(BlazeTheme.textMuted)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2.5)
+                                        .background(BlazeTheme.surfaceBorder.opacity(0.4))
+                                        .cornerRadius(5)
+                                    }
                                     
                                     if let odo = v.vehicleOdometerKm, odo > 0 {
                                         Text("\(odo) km")
@@ -250,11 +302,20 @@ public struct LiveMapView: View {
             if fleetVM.vehicles.isEmpty {
                 await fleetVM.fetchSummary()
             }
+            if !wsService.isConnected {
+                wsService.reconnectNow()
+            }
             fitFleet()
-        }
-        .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { _ in
-            Task {
+            
+            // Continuous fast adaptive sync while LiveMapView is active
+            while !Task.isCancelled {
+                let delay: UInt64 = (!wsService.isConnected || anyVehicleMoving) ? 4_000_000_000 : 12_000_000_000
+                try? await Task.sleep(nanoseconds: delay)
+                guard !Task.isCancelled else { break }
                 await fleetVM.fetchSummary()
+                if !wsService.isConnected {
+                    wsService.reconnectNow()
+                }
             }
         }
     }

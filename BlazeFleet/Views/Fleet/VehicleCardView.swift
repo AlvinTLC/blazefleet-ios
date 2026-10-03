@@ -74,6 +74,30 @@ public struct VehicleCardView: View {
                 }
             }
             
+            if let gf = vehicle.currentGeofence {
+                HStack(spacing: 4) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 10))
+                        .foregroundColor(BlazeTheme.primary)
+                    Text(gf)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(BlazeTheme.primary)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    if let limit = vehicle.speedLimitKmh {
+                        Text("Límite \(Int(limit)) km/h")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(BlazeTheme.textMuted)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(BlazeTheme.primary.opacity(0.08))
+                .cornerRadius(6)
+            }
+            
             Divider()
                 .background(BlazeTheme.surfaceBorder.opacity(0.6))
             

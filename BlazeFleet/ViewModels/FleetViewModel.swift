@@ -117,7 +117,10 @@ public final class FleetViewModel: ObservableObject {
                     satellites: update.satellites ?? v.satellites,
                     odometerKm: update.odometerKm ?? v.odometerKm,
                     vehicleOdometerKm: update.vehicleOdometerKm ?? v.vehicleOdometerKm,
-                    batteryPct: v.batteryPct
+                    batteryPct: v.batteryPct,
+                    speedLimitKmh: v.speedLimitKmh,
+                    currentGeofence: v.currentGeofence,
+                    todayAlertsCount: v.todayAlertsCount
                 )
                 updatedList[index] = updated
                 hasChanges = true

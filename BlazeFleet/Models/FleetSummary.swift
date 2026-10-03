@@ -7,18 +7,27 @@ public struct FleetSummaryCounts: Codable, Equatable {
     public let stopped: Int
     public let offline: Int
     public let sos: Int
+    public let speeding: Int?
+    public let insideGeofence: Int?
     
-    public init(total: Int, moving: Int, idle: Int, stopped: Int, offline: Int, sos: Int = 0) {
+    public init(total: Int, moving: Int, idle: Int, stopped: Int, offline: Int, sos: Int = 0, speeding: Int? = 0, insideGeofence: Int? = 0) {
         self.total = total
         self.moving = moving
         self.idle = idle
         self.stopped = stopped
         self.offline = offline
         self.sos = sos
+        self.speeding = speeding
+        self.insideGeofence = insideGeofence
     }
     
     public static var zero: FleetSummaryCounts {
-        FleetSummaryCounts(total: 0, moving: 0, idle: 0, stopped: 0, offline: 0, sos: 0)
+        FleetSummaryCounts(total: 0, moving: 0, idle: 0, stopped: 0, offline: 0, sos: 0, speeding: 0, insideGeofence: 0)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case total, moving, idle, stopped, offline, sos, speeding
+        case insideGeofence = "inside_geofence"
     }
 }
 
@@ -41,6 +50,9 @@ public struct MobileVehicleSummary: Codable, Identifiable {
     public let odometerKm: Double?
     public let vehicleOdometerKm: Int?
     public let batteryPct: Int?
+    public let speedLimitKmh: Double?
+    public let currentGeofence: String?
+    public let todayAlertsCount: Int?
     
     public init(
         vehicleId: String,
@@ -59,7 +71,10 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         satellites: Int? = nil,
         odometerKm: Double? = nil,
         vehicleOdometerKm: Int? = nil,
-        batteryPct: Int? = nil
+        batteryPct: Int? = nil,
+        speedLimitKmh: Double? = nil,
+        currentGeofence: String? = nil,
+        todayAlertsCount: Int? = nil
     ) {
         self.vehicleId = vehicleId
         self.trackerId = trackerId
@@ -78,6 +93,9 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         self.odometerKm = odometerKm
         self.vehicleOdometerKm = vehicleOdometerKm
         self.batteryPct = batteryPct
+        self.speedLimitKmh = speedLimitKmh
+        self.currentGeofence = currentGeofence
+        self.todayAlertsCount = todayAlertsCount
     }
     
     enum CodingKeys: String, CodingKey {
@@ -98,6 +116,9 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         case odometerKm = "odometer_km"
         case vehicleOdometerKm = "vehicle_odometer_km"
         case batteryPct = "battery_pct"
+        case speedLimitKmh = "speed_limit_kmh"
+        case currentGeofence = "current_geofence"
+        case todayAlertsCount = "today_alerts_count"
     }
     
     public init(from decoder: Decoder) throws {
@@ -119,6 +140,9 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         odometerKm = try? c.decodeIfPresent(Double.self, forKey: .odometerKm)
         vehicleOdometerKm = try? c.decodeIfPresent(Int.self, forKey: .vehicleOdometerKm)
         batteryPct = try? c.decodeIfPresent(Int.self, forKey: .batteryPct)
+        speedLimitKmh = try? c.decodeIfPresent(Double.self, forKey: .speedLimitKmh)
+        currentGeofence = try? c.decodeIfPresent(String.self, forKey: .currentGeofence)
+        todayAlertsCount = try? c.decodeIfPresent(Int.self, forKey: .todayAlertsCount)
     }
 }
 
@@ -283,3 +307,98 @@ public struct EventItem: Codable, Identifiable, Equatable {
 public struct EventsResponse: Codable {
     public let items: [EventItem]
 }
+
+public struct MobileAlertItem: Codable, Identifiable, Equatable {
+    public let id: String
+    public let kind: String
+    public let title: String
+    public let body: String
+    public let severity: String
+    public let vehicleId: String?
+    public let plate: String?
+    public let vehicleModel: String?
+    public let geofenceId: String?
+    public let geofenceName: String?
+    public let speedKmh: Double?
+    public let speedLimitKmh: Double?
+    public let time: String?
+    public let acknowledged: Bool
+    public let acknowledgedAt: String?
+    public let ackNote: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, kind, title, body, severity
+        case vehicleId = "vehicle_id"
+        case plate
+        case vehicleModel = "vehicle_model"
+        case geofenceId = "geofence_id"
+        case geofenceName = "geofence_name"
+        case speedKmh = "speed_kmh"
+        case speedLimitKmh = "speed_limit_kmh"
+        case time, acknowledged
+        case acknowledgedAt = "acknowledged_at"
+        case ackNote = "ack_note"
+    }
+}
+
+public struct MobileAlertCounts: Codable, Equatable {
+    public let total: Int
+    public let unacknowledged: Int
+    public let critical: Int
+    public let warning: Int
+    public let info: Int
+}
+
+public struct MobileAlertsResponse: Codable {
+    public let counts: MobileAlertCounts
+    public let items: [MobileAlertItem]
+}
+
+public struct MobileMetricsResponse: Codable {
+    public let totalDistanceKmToday: Double
+    public let tripsToday: Int
+    public let speedingAlertsToday: Int
+    public let geofenceAlertsToday: Int
+    public let sosAlertsToday: Int
+    public let totalVehicles: Int
+    public let movingVehicles: Int
+    public let idleVehicles: Int
+    public let stoppedVehicles: Int
+    public let offlineVehicles: Int
+    public let fleetUtilizationPct: Double
+    public let generatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case totalDistanceKmToday = "total_distance_km_today"
+        case tripsToday = "trips_today"
+        case speedingAlertsToday = "speeding_alerts_today"
+        case geofenceAlertsToday = "geofence_alerts_today"
+        case sosAlertsToday = "sos_alerts_today"
+        case totalVehicles = "total_vehicles"
+        case movingVehicles = "moving_vehicles"
+        case idleVehicles = "idle_vehicles"
+        case stoppedVehicles = "stopped_vehicles"
+        case offlineVehicles = "offline_vehicles"
+        case fleetUtilizationPct = "fleet_utilization_pct"
+        case generatedAt = "generated_at"
+    }
+}
+
+public struct VehicleShareLinkResponse: Codable {
+    public let id: String
+    public let vehicleId: String
+    public let token: String
+    public let shareUrl: String
+    public let expiresAt: String
+    public let createdAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case vehicleId = "vehicle_id"
+        case token
+        case shareUrl = "share_url"
+        case expiresAt = "expires_at"
+        case createdAt = "created_at"
+    }
+}
+

@@ -69,7 +69,10 @@ public final class VehicleDetailViewModel: ObservableObject {
                     satellites: update.satellites ?? self.vehicle.satellites,
                     odometerKm: update.odometerKm ?? self.vehicle.odometerKm,
                     vehicleOdometerKm: update.vehicleOdometerKm ?? self.vehicle.vehicleOdometerKm,
-                    batteryPct: self.vehicle.batteryPct
+                    batteryPct: self.vehicle.batteryPct,
+                    speedLimitKmh: self.vehicle.speedLimitKmh,
+                    currentGeofence: self.vehicle.currentGeofence,
+                    todayAlertsCount: self.vehicle.todayAlertsCount
                 )
             }
             .store(in: &cancellables)
@@ -113,5 +116,15 @@ public final class VehicleDetailViewModel: ObservableObject {
         
         isExecutingCommand = false
         pendingCommand = nil
+    }
+    
+    public func createShareLink(durationMinutes: Int = 120) async -> String? {
+        do {
+            let resp = try await api.createVehicleShareLink(vehicleId: vehicle.vehicleId, durationMinutes: durationMinutes)
+            return resp.shareUrl
+        } catch {
+            self.commandErrorMessage = "Error generando enlace de rastreo: \(error.localizedDescription)"
+            return nil
+        }
     }
 }

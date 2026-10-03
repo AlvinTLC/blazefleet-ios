@@ -4,6 +4,9 @@ import MapKit
 public struct VehicleDetailView: View {
     @StateObject private var detailVM: VehicleDetailViewModel
     @State private var showCommandModal = false
+    @State private var isGeneratingShare = false
+    @State private var generatedShareUrl: String?
+    @State private var showShareSuccess = false
     
     public init(vehicle: MobileVehicleSummary) {
         _detailVM = StateObject(wrappedValue: VehicleDetailViewModel(vehicle: vehicle))
@@ -41,6 +44,32 @@ public struct VehicleDetailView: View {
                         }
                         .padding()
                         .background(BlazeTheme.danger.opacity(0.15))
+                        .cornerRadius(12)
+                    }
+                    
+                    if showShareSuccess, let url = generatedShareUrl {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "link.circle.fill")
+                                    .foregroundColor(BlazeTheme.primary)
+                                Text("Enlace Público de Rastreo Generado (Válido 2h)")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                                Spacer()
+                                Button("Cerrar") {
+                                    showShareSuccess = false
+                                }
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(BlazeTheme.textMuted)
+                            }
+                            Text(url)
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundColor(BlazeTheme.primary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                        .padding()
+                        .background(BlazeTheme.primary.opacity(0.15))
                         .cornerRadius(12)
                     }
                     
@@ -90,6 +119,38 @@ public struct VehicleDetailView: View {
                                     Text(driver)
                                         .font(.system(size: 14, weight: .medium))
                                         .foregroundColor(BlazeTheme.textSecondary)
+                                }
+                            }
+                        }
+                        
+                        if detailVM.vehicle.currentGeofence != nil || detailVM.vehicle.speedLimitKmh != nil {
+                            HStack(spacing: 8) {
+                                if let gf = detailVM.vehicle.currentGeofence {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "mappin.and.ellipse")
+                                            .font(.system(size: 11))
+                                        Text(gf)
+                                            .font(.system(size: 11, weight: .semibold))
+                                    }
+                                    .foregroundColor(BlazeTheme.primary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(BlazeTheme.primary.opacity(0.12))
+                                    .cornerRadius(6)
+                                }
+                                
+                                if let limit = detailVM.vehicle.speedLimitKmh {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "gauge.with.dots.needle.bottom.50percent")
+                                            .font(.system(size: 11))
+                                        Text("Límite: \(Int(limit)) km/h")
+                                            .font(.system(size: 11, weight: .semibold))
+                                    }
+                                    .foregroundColor(BlazeTheme.idle)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(BlazeTheme.idle.opacity(0.12))
+                                    .cornerRadius(6)
                                 }
                             }
                         }
@@ -153,6 +214,36 @@ public struct VehicleDetailView: View {
                                 .cornerRadius(12)
                             }
                         }
+                        
+                        // Share Live Tracking Link Button
+                        Button {
+                            Task {
+                                isGeneratingShare = true
+                                if let url = await detailVM.createShareLink(durationMinutes: 120) {
+                                    generatedShareUrl = url
+                                    showShareSuccess = true
+                                    UIPasteboard.general.string = url
+                                }
+                                isGeneratingShare = false
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                if isGeneratingShare {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "square.and.arrow.up")
+                                    Text("Compartir Rastreo en Vivo (2h)")
+                                }
+                            }
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(BlazeTheme.primary)
+                            .cornerRadius(12)
+                        }
+                        .disabled(isGeneratingShare)
                     }
                     
                     // Telemetry Gauges Grid

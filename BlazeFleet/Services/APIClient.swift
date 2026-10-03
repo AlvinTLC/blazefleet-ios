@@ -212,5 +212,35 @@ public final class APIClient: ObservableObject {
         let resp: EventsResponse = try await request(path: path)
         return resp.items
     }
+    
+    // MARK: - Commercial Alerts, Metrics & Tracking
+    
+    public func getMobileAlerts(limit: Int = 50, offset: Int = 0, unacknowledgedOnly: Bool = false) async throws -> MobileAlertsResponse {
+        var path = "/api/v1/mobile/alerts?limit=\(limit)&offset=\(offset)"
+        if unacknowledgedOnly {
+            path += "&unacknowledged_only=true"
+        }
+        return try await request(path: path)
+    }
+    
+    public func acknowledgeAlert(id: String, note: String? = nil) async throws {
+        var payload: [String: Any] = [:]
+        if let note = note {
+            payload["note"] = note
+        }
+        let body = try JSONSerialization.data(withJSONObject: payload)
+        let _: Data = try await request(path: "/api/v1/mobile/alerts/\(id)/ack", method: "POST", body: body)
+    }
+    
+    public func getMobileMetrics() async throws -> MobileMetricsResponse {
+        return try await request(path: "/api/v1/mobile/metrics")
+    }
+    
+    public func createVehicleShareLink(vehicleId: String, durationMinutes: Int = 120) async throws -> VehicleShareLinkResponse {
+        let payload: [String: Any] = ["duration_minutes": durationMinutes]
+        let body = try JSONSerialization.data(withJSONObject: payload)
+        return try await request(path: "/api/v1/vehicles/\(vehicleId)/share-link", method: "POST", body: body)
+    }
 }
+
 

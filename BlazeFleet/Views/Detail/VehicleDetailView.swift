@@ -255,15 +255,107 @@ public struct VehicleDetailView: View {
                             }
                         }
                     }
+                    
+                    // Recent Events Timeline Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Eventos GPS Recientes")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(BlazeTheme.textSecondary)
+                            Spacer()
+                            if detailVM.isLoadingEvents {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                        
+                        if detailVM.recentEvents.isEmpty && !detailVM.isLoadingEvents {
+                            HStack {
+                                Spacer()
+                                Text("No hay eventos recientes registrados")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(BlazeTheme.textMuted)
+                                Spacer()
+                            }
+                            .padding(.vertical, 16)
+                            .background(BlazeTheme.surface)
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
+                        } else {
+                            VStack(spacing: 8) {
+                                ForEach(detailVM.recentEvents) { event in
+                                    HStack(spacing: 12) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(eventColor(event.kind).opacity(0.15))
+                                                .frame(width: 32, height: 32)
+                                            Image(systemName: event.iconName)
+                                                .font(.system(size: 13, weight: .bold))
+                                                .foregroundColor(eventColor(event.kind))
+                                        }
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(event.displayName)
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .foregroundColor(BlazeTheme.textPrimary)
+                                            Text(formatEventTime(event.time))
+                                                .font(.system(size: 11))
+                                                .foregroundColor(BlazeTheme.textMuted)
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(BlazeTheme.surface)
+                                    .cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
+                                }
+                            }
+                        }
+                    }
                 }
                 .padding(16)
+            }
+            .refreshable {
+                await detailVM.fetchRecentEvents()
             }
         }
         .navigationTitle(detailVM.vehicle.plate)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await detailVM.fetchRecentEvents()
+        }
         .sheet(isPresented: $showCommandModal) {
             RemoteCommandSheet(detailVM: detailVM)
                 .presentationDetents([.medium])
         }
+    }
+    
+    private func eventColor(_ kind: String) -> Color {
+        switch kind {
+        case "ignition_on": return BlazeTheme.moving
+        case "ignition_off": return BlazeTheme.stopped
+        case "power_cut": return BlazeTheme.danger
+        case "power_restored": return BlazeTheme.primary
+        case "speeding": return BlazeTheme.idle
+        case "panic", "sos": return BlazeTheme.danger
+        default: return BlazeTheme.secondary
+        }
+    }
+    
+    private func formatEventTime(_ timeStr: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var date = formatter.date(from: timeStr)
+        if date == nil {
+            formatter.formatOptions = [.withInternetDateTime]
+            date = formatter.date(from: timeStr)
+        }
+        guard let d = date else { return timeStr }
+        
+        let relative = RelativeDateTimeFormatter()
+        relative.unitsStyle = .abbreviated
+        relative.locale = Locale(identifier: "es_DO")
+        return relative.localizedString(for: d, relativeTo: Date())
     }
 }

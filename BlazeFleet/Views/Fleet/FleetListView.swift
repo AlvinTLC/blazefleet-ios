@@ -83,17 +83,21 @@ public struct FleetListView: View {
                     }
                 }
             }
-            .navigationTitle("Flota")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
-                            .frame(width: 8, height: 8)
-                        Text(wsService.isConnected ? "En vivo" : "Reconectando...")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(BlazeTheme.textSecondary)
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text("Flota")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(BlazeTheme.textPrimary)
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                                .frame(width: 6, height: 6)
+                            Text(wsService.isConnected ? "En vivo" : "Reconectando...")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(BlazeTheme.textSecondary)
+                        }
                     }
                 }
                 

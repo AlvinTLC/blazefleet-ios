@@ -1,17 +1,38 @@
 import SwiftUI
 import MapKit
 
+public enum FleetMapStyle: String, CaseIterable, Identifiable {
+    case standard = "Estándar"
+    case satellite = "Satélite"
+    case hybrid = "Híbrido"
+    
+    public var id: String { rawValue }
+}
+
 public struct LiveMapView: View {
     @ObservedObject var fleetVM: FleetViewModel
+    @ObservedObject var wsService = WebSocketService.shared
     @State private var position: MapCameraPosition = .automatic
     @State private var selectedVehicle: MobileVehicleSummary?
-    @State private var showDetail = false
+    @State private var selectedMapStyle: FleetMapStyle = .standard
+    @State private var showTraffic = false
     
-    // Default Dominican Republic center
-    private let defaultCoordinate = CLLocationCoordinate2D(latitude: 18.4861, longitude: -69.9312)
+    // Default Dominican Republic center (Santiago / Cibao)
+    private let defaultCoordinate = CLLocationCoordinate2D(latitude: 19.4517, longitude: -70.6970)
     
     public init(fleetVM: FleetViewModel) {
         self.fleetVM = fleetVM
+    }
+    
+    private var activeMapStyle: MapStyle {
+        switch selectedMapStyle {
+        case .standard:
+            return .standard(elevation: .realistic, pointsOfInterest: .all, showsTraffic: showTraffic)
+        case .satellite:
+            return .imagery(elevation: .realistic)
+        case .hybrid:
+            return .hybrid(elevation: .realistic, pointsOfInterest: .all, showsTraffic: showTraffic)
+        }
     }
     
     public var body: some View {
@@ -32,48 +53,109 @@ public struct LiveMapView: View {
                                 .onTapGesture {
                                     withAnimation(.spring(response: 0.35)) {
                                         selectedVehicle = vehicle
+                                        position = .camera(MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng), distance: 2500))
                                     }
                                 }
                             }
                         }
                     }
                 }
-                .mapStyle(.standard(elevation: .realistic))
+                .mapStyle(activeMapStyle)
                 .ignoresSafeArea(edges: .top)
+                
+                // Top Floating Status Banner
+                VStack {
+                    HStack {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                                .frame(width: 8, height: 8)
+                            
+                            Text("\(fleetVM.vehicles.count) unidades")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(BlazeTheme.textPrimary)
+                            
+                            Text("•")
+                                .foregroundColor(BlazeTheme.textMuted)
+                            
+                            Text(wsService.isConnected ? "En vivo" : "Sincronizando...")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(wsService.isConnected ? BlazeTheme.moving : BlazeTheme.idle)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(BlazeTheme.surface.opacity(0.92))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
+                        .shadow(color: .black.opacity(0.3), radius: 6, y: 2)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    
+                    Spacer()
+                }
                 
                 // Overlay Controls (Top right)
                 VStack {
                     HStack {
                         Spacer()
                         VStack(spacing: 8) {
+                            // Layer / Map Style Menu
+                            Menu {
+                                Picker("Capa del Mapa", selection: $selectedMapStyle) {
+                                    ForEach(FleetMapStyle.allCases) { style in
+                                        Text(style.rawValue).tag(style)
+                                    }
+                                }
+                                
+                                Divider()
+                                
+                                Toggle(isOn: $showTraffic) {
+                                    Label("Tráfico en Vivo", systemImage: "car.2.fill")
+                                }
+                            } label: {
+                                Image(systemName: "square.3.layers.3d")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(selectedMapStyle != .standard || showTraffic ? BlazeTheme.primary : BlazeTheme.textPrimary)
+                                    .frame(width: 42, height: 42)
+                                    .background(BlazeTheme.surface.opacity(0.92))
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
+                                    .shadow(color: .black.opacity(0.25), radius: 4)
+                            }
+                            
+                            // Fit Fleet / Center Viewfinder
                             Button {
                                 fitFleet()
                             } label: {
                                 Image(systemName: "viewfinder")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(BlazeTheme.textPrimary)
-                                    .frame(width: 40, height: 40)
-                                    .background(BlazeTheme.surface.opacity(0.9))
+                                    .frame(width: 42, height: 42)
+                                    .background(BlazeTheme.surface.opacity(0.92))
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
-                                    .shadow(radius: 4)
+                                    .shadow(color: .black.opacity(0.25), radius: 4)
                             }
                             
+                            // Manual Refresh
                             Button {
                                 Task { await fleetVM.fetchSummary() }
                             } label: {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(BlazeTheme.primary)
-                                    .frame(width: 40, height: 40)
-                                    .background(BlazeTheme.surface.opacity(0.9))
+                                    .frame(width: 42, height: 42)
+                                    .background(BlazeTheme.surface.opacity(0.92))
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(BlazeTheme.surfaceBorder, lineWidth: 1))
-                                    .shadow(radius: 4)
+                                    .shadow(color: .black.opacity(0.25), radius: 4)
                             }
                         }
                         .padding(.trailing, 16)
-                        .padding(.top, 16)
+                        .padding(.top, 12)
                     }
                     Spacer()
                 }
@@ -81,7 +163,7 @@ public struct LiveMapView: View {
                 // Selected Unit Slide-up Card
                 if let v = selectedVehicle {
                     VStack(spacing: 0) {
-                        HStack {
+                        HStack(alignment: .center) {
                             Text(v.plate)
                                 .font(.system(size: 14, weight: .heavy, design: .monospaced))
                                 .foregroundColor(.white)
@@ -90,7 +172,7 @@ public struct LiveMapView: View {
                                 .background(BlazeTheme.surfaceBorder)
                                 .cornerRadius(6)
                             
-                            Text(v.vehicleModel)
+                            Text(v.vehicleModel.isEmpty ? "Vehículo" : v.vehicleModel)
                                 .font(.system(size: 15, weight: .bold))
                                 .foregroundColor(.white)
                             
@@ -111,10 +193,24 @@ public struct LiveMapView: View {
                         
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(v.driverName ?? "Sin conductor asignado")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(BlazeTheme.textSecondary)
-                                StatusChip(state: v.state)
+                                HStack(spacing: 5) {
+                                    Image(systemName: "person.circle.fill")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(BlazeTheme.primary)
+                                    Text(v.driverName ?? "Sin conductor asignado")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(BlazeTheme.textSecondary)
+                                }
+                                
+                                HStack(spacing: 8) {
+                                    StatusChip(state: v.state)
+                                    
+                                    if let odo = v.vehicleOdometerKm, odo > 0 {
+                                        Text("\(odo) km")
+                                            .font(.system(size: 11, weight: .medium))
+                                            .foregroundColor(BlazeTheme.textMuted)
+                                    }
+                                }
                             }
                             
                             Spacer()
@@ -123,7 +219,7 @@ public struct LiveMapView: View {
                                 VehicleDetailView(vehicle: v)
                             } label: {
                                 HStack(spacing: 6) {
-                                    Text("Ver detalles")
+                                    Text("Detalles")
                                         .font(.system(size: 13, weight: .bold))
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 11, weight: .bold))
@@ -144,7 +240,7 @@ public struct LiveMapView: View {
                             .stroke(BlazeTheme.primaryGlow, lineWidth: 1)
                     )
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 20)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -157,6 +253,11 @@ public struct LiveMapView: View {
             }
             fitFleet()
         }
+        .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { _ in
+            Task {
+                await fleetVM.fetchSummary()
+            }
+        }
     }
     
     private func fitFleet() {
@@ -166,7 +267,7 @@ public struct LiveMapView: View {
         }
         
         if validCoords.isEmpty {
-            position = .camera(MapCamera(centerCoordinate: defaultCoordinate, distance: 30000))
+            position = .camera(MapCamera(centerCoordinate: defaultCoordinate, distance: 35000))
             return
         }
         
@@ -176,9 +277,11 @@ public struct LiveMapView: View {
         let maxLng = validCoords.map(\.longitude).max()!
         
         let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLng + maxLng) / 2)
-        let span = MKCoordinateSpan(latitudeDelta: max((maxLat - minLat) * 1.4, 0.05), longitudeDelta: max((maxLng - minLng) * 1.4, 0.05))
+        let latDelta = max((maxLat - minLat) * 1.5, 0.04)
+        let lngDelta = max((maxLng - minLng) * 1.5, 0.04)
+        let span = MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lngDelta)
         
-        withAnimation {
+        withAnimation(.easeInOut(duration: 0.8)) {
             position = .region(MKCoordinateRegion(center: center, span: span))
         }
     }

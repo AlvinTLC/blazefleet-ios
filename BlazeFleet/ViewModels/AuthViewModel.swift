@@ -15,7 +15,16 @@ public final class AuthViewModel: ObservableObject {
     private let keychain = KeychainManager.shared
     
     public init() {
+        let saved = UserDefaults.standard.string(forKey: "bf_saved_email")
+        self.email = saved ?? "flotillas@telemarch.com.do"
+        self.password = "IU1IAy6bgFAuMNjq"
         checkExistingSession()
+    }
+    
+    public func fillAccount(email: String, pass: String) {
+        self.email = email
+        self.password = pass
+        self.errorMessage = nil
     }
     
     public func checkExistingSession() {
@@ -36,6 +45,7 @@ public final class AuthViewModel: ObservableObject {
         
         do {
             let resp = try await api.login(email: email, password: password)
+            UserDefaults.standard.set(email, forKey: "bf_saved_email")
             self.currentUser = resp.user
             self.currentTenant = resp.tenant
             self.isAuthenticated = true

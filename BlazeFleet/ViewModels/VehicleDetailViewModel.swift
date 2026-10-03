@@ -4,6 +4,8 @@ import Combine
 @MainActor
 public final class VehicleDetailViewModel: ObservableObject {
     @Published public var vehicle: MobileVehicleSummary
+    @Published public var recentEvents: [EventItem] = []
+    @Published public var isLoadingEvents = false
     @Published public var isExecutingCommand = false
     @Published public var commandSuccessMessage: String?
     @Published public var commandErrorMessage: String?
@@ -17,6 +19,18 @@ public final class VehicleDetailViewModel: ObservableObject {
     public init(vehicle: MobileVehicleSummary) {
         self.vehicle = vehicle
         bindWebSocket()
+    }
+    
+    public func fetchRecentEvents() async {
+        guard !vehicle.vehicleId.isEmpty else { return }
+        isLoadingEvents = true
+        do {
+            let events = try await api.getEvents(vehicleId: vehicle.vehicleId, limit: 15)
+            self.recentEvents = events
+        } catch {
+            print("[Events] Error fetching events for vehicle \(vehicle.plate): \(error.localizedDescription)")
+        }
+        isLoadingEvents = false
     }
     
     private func bindWebSocket() {
@@ -34,6 +48,7 @@ public final class VehicleDetailViewModel: ObservableObject {
                     plate: update.plate ?? self.vehicle.plate,
                     vehicleModel: update.vehicleModel ?? self.vehicle.vehicleModel,
                     driverName: update.driverName ?? self.vehicle.driverName,
+                    driverPhone: self.vehicle.driverPhone,
                     state: update.state ?? self.vehicle.state,
                     time: update.time ?? self.vehicle.time,
                     lat: update.lat ?? self.vehicle.lat,
@@ -80,6 +95,8 @@ public final class VehicleDetailViewModel: ObservableObject {
                 reason: "Comando móvil desde app iOS"
             )
             self.commandSuccessMessage = "Comando '\(resp.command)' enviado exitosamente (ID: \(resp.commandId.prefix(8)))"
+            // Re-fetch events after a command dispatch
+            Task { await self.fetchRecentEvents() }
         } catch {
             self.commandErrorMessage = "Error ejecutando comando: \(error.localizedDescription)"
         }

@@ -29,6 +29,7 @@ public struct MobileVehicleSummary: Codable, Identifiable {
     public let plate: String
     public let vehicleModel: String
     public let driverName: String?
+    public let driverPhone: String?
     public let state: VehicleState
     public let time: String?
     public let lat: Double?
@@ -47,6 +48,7 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         plate: String,
         vehicleModel: String = "",
         driverName: String? = nil,
+        driverPhone: String? = nil,
         state: VehicleState,
         time: String? = nil,
         lat: Double? = nil,
@@ -64,6 +66,7 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         self.plate = plate
         self.vehicleModel = vehicleModel
         self.driverName = driverName
+        self.driverPhone = driverPhone
         self.state = state
         self.time = time
         self.lat = lat
@@ -83,6 +86,7 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         case plate
         case vehicleModel = "vehicle_model"
         case driverName = "driver_name"
+        case driverPhone = "driver_phone"
         case state
         case time
         case lat
@@ -103,6 +107,7 @@ public struct MobileVehicleSummary: Codable, Identifiable {
         plate = (try? c.decode(String.self, forKey: .plate)) ?? "S/P"
         vehicleModel = (try? c.decode(String.self, forKey: .vehicleModel)) ?? ""
         driverName = try? c.decodeIfPresent(String.self, forKey: .driverName)
+        driverPhone = try? c.decodeIfPresent(String.self, forKey: .driverPhone)
         state = (try? c.decode(VehicleState.self, forKey: .state)) ?? .offline
         time = try? c.decodeIfPresent(String.self, forKey: .time)
         lat = try? c.decodeIfPresent(Double.self, forKey: .lat)
@@ -223,15 +228,53 @@ public struct NotificationsResponse: Codable {
     public let unread: Int?
 }
 
-public struct EventItem: Codable, Identifiable {
+public struct EventItem: Codable, Identifiable, Equatable {
     public let id: String
     public let vehicleId: String?
+    public let plate: String?
     public let kind: String
     public let time: String
+    
+    public init(id: String, vehicleId: String? = nil, plate: String? = nil, kind: String, time: String) {
+        self.id = id
+        self.vehicleId = vehicleId
+        self.plate = plate
+        self.kind = kind
+        self.time = time
+    }
+    
+    public var displayName: String {
+        switch kind {
+        case "ignition_on": return "Motor Encendido"
+        case "ignition_off": return "Motor Apagado"
+        case "power_cut": return "Corte de Alimentación GPS"
+        case "power_restored": return "Alimentación Restablecida"
+        case "speeding": return "Exceso de Velocidad"
+        case "panic", "sos": return "Alerta S.O.S. / Pánico"
+        case "geofence_enter": return "Entrada a Geocerca"
+        case "geofence_exit": return "Salida de Geocerca"
+        default: return kind.replacingOccurrences(of: "_", with: " ").capitalized
+        }
+    }
+    
+    public var iconName: String {
+        switch kind {
+        case "ignition_on": return "key.fill"
+        case "ignition_off": return "key"
+        case "power_cut": return "powercord.fill"
+        case "power_restored": return "bolt.fill"
+        case "speeding": return "speedometer"
+        case "panic", "sos": return "exclamationmark.shield.fill"
+        case "geofence_enter": return "arrow.down.right.and.arrow.up.left"
+        case "geofence_exit": return "arrow.up.left.and.arrow.down.right"
+        default: return "clock.fill"
+        }
+    }
     
     enum CodingKeys: String, CodingKey {
         case id
         case vehicleId = "vehicle_id"
+        case plate
         case kind
         case time
     }

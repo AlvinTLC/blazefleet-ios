@@ -4,6 +4,7 @@ public struct LoginView: View {
     @ObservedObject var authVM: AuthViewModel
     @State private var showSettings = false
     @State private var customServerURL = APIClient.shared.baseURL
+    @State private var showPassword = false
     
     public init(authVM: AuthViewModel) {
         self.authVM = authVM
@@ -72,8 +73,22 @@ public struct LoginView: View {
                         HStack {
                             Image(systemName: "lock.fill")
                                 .foregroundColor(BlazeTheme.textMuted)
-                            SecureField("••••••••", text: $authVM.password)
-                                .foregroundColor(BlazeTheme.textPrimary)
+                            if showPassword {
+                                TextField("Contraseña", text: $authVM.password)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled(true)
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                            } else {
+                                SecureField("••••••••", text: $authVM.password)
+                                    .foregroundColor(BlazeTheme.textPrimary)
+                            }
+                            Button {
+                                showPassword.toggle()
+                            } label: {
+                                Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                    .foregroundColor(BlazeTheme.textMuted)
+                                    .font(.system(size: 14))
+                            }
                         }
                         .padding()
                         .background(BlazeTheme.surface)
@@ -83,6 +98,52 @@ public struct LoginView: View {
                                 .stroke(BlazeTheme.surfaceBorder, lineWidth: 1)
                         )
                     }
+                    
+                    // Quick Accounts Selector
+                    HStack(spacing: 8) {
+                        Button {
+                            authVM.fillAccount(email: "flotillas@telemarch.com.do", pass: "IU1IAy6bgFAuMNjq")
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "building.2.fill")
+                                    .font(.system(size: 11))
+                                Text("Telemarch")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(authVM.email.contains("telemarch") ? BlazeTheme.primary.opacity(0.18) : BlazeTheme.surface)
+                            .foregroundColor(authVM.email.contains("telemarch") ? BlazeTheme.primary : BlazeTheme.textSecondary)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(authVM.email.contains("telemarch") ? BlazeTheme.primary : BlazeTheme.surfaceBorder, lineWidth: 1)
+                            )
+                        }
+                        
+                        Button {
+                            authVM.fillAccount(email: "owner@demo.do", pass: "Demo1234!")
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "car.2.fill")
+                                    .font(.system(size: 11))
+                                Text("Demo")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(authVM.email.contains("demo") ? BlazeTheme.primary.opacity(0.18) : BlazeTheme.surface)
+                            .foregroundColor(authVM.email.contains("demo") ? BlazeTheme.primary : BlazeTheme.textSecondary)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(authVM.email.contains("demo") ? BlazeTheme.primary : BlazeTheme.surfaceBorder, lineWidth: 1)
+                            )
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.top, 2)
                     
                     if let err = authVM.errorMessage {
                         Text(err)
